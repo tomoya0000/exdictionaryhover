@@ -9,15 +9,54 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onLanguage:plaintext"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "exdictionaryhover.helloWorld",
+        "command": "",
         "title": "Hello World"
       }
     ]
+  },
+  "configuration": {
+    "type": "object",
+    "title": "ExDictionaryHover Configuration",
+    "properties": {
+      "exDictionaryHover.csvFiles": {
+        "type": "array",
+        "description": "CSVファイルの設定リスト。各要素はfilePath, idCol, sqlCol, descColを含みます。",
+        "items": {
+          "type": "object",
+          "properties": {
+            "filePath": {
+              "type": "string",
+              "description": "CSVファイルのパス"
+            },
+            "idCol": {
+              "type": "number",
+              "description": "ID列のインデックス"
+            },
+            "sqlCol": {
+              "type": "number",
+              "description": "SQL列のインデックス"
+            },
+            "descCol": {
+              "type": "number",
+              "description": "説明列のインデックス（省略可能）"
+            }
+          },
+          "required": [
+            "filePath",
+            "idCol",
+            "sqlCol"
+          ]
+        },
+        "default": []
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
