@@ -3,6 +3,10 @@
   "displayName": "ExDictionaryHover",
   "description": "外部ファイルで定義した辞書を参照し、説明をホバーします。",
   "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "test"
+  },
   "engines": {
     "vscode": "^1.100.0"
   },
@@ -14,47 +18,41 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "",
-        "title": "Hello World"
-      }
-    ]
-  },
-  "configuration": {
-    "type": "object",
-    "title": "ExDictionaryHover Configuration",
-    "properties": {
-      "exDictionaryHover.csvFiles": {
-        "type": "array",
-        "description": "CSVファイルの設定リスト。各要素はfilePath, idCol, sqlCol, descColを含みます。",
-        "items": {
-          "type": "object",
-          "properties": {
-            "filePath": {
-              "type": "string",
-              "description": "CSVファイルのパス"
+    "configuration": {
+      "type": "object",
+      "title": "ExDictionaryHover Configuration",
+      "properties": {
+        "exDictionaryHover.csvFiles": {
+          "type": "array",
+          "description": "CSVファイルの設定リスト。各要素はfilePath, idCol, sqlCol, descColを含みます。",
+          "items": {
+            "type": "object",
+            "properties": {
+              "filePath": {
+                "type": "string",
+                "description": "CSVファイルのパス"
+              },
+              "idCol": {
+                "type": "number",
+                "description": "ID列のインデックス"
+              },
+              "sqlCol": {
+                "type": "number",
+                "description": "SQL列のインデックス"
+              },
+              "descCol": {
+                "type": "number",
+                "description": "説明列のインデックス（省略可能）"
+              }
             },
-            "idCol": {
-              "type": "number",
-              "description": "ID列のインデックス"
-            },
-            "sqlCol": {
-              "type": "number",
-              "description": "SQL列のインデックス"
-            },
-            "descCol": {
-              "type": "number",
-              "description": "説明列のインデックス（省略可能）"
-            }
+            "required": [
+              "filePath",
+              "idCol",
+              "sqlCol"
+            ]
           },
-          "required": [
-            "filePath",
-            "idCol",
-            "sqlCol"
-          ]
-        },
-        "default": []
+          "default": []
+        }
       }
     }
   },

@@ -1,0 +1,6 @@
+sqlid	sql	説明
+SQLID0014	SELECT * FROM products WHERE category = ? AND price < ?	説明１４
+SQLID0015	INSERT INTO reviews (product_id, user_id, rating, comment) VALUES (?, ?, ?, ?)	説明１５
+SQLID0016	UPDATE users SET last_login = NOW() WHERE user_id = ?	説明１６
+SQLID0017	DELETE FROM carts WHERE user_id = ?	説明１７
+SQLID0018	SELECT COUNT(*) FROM orders WHERE user_id = ?	説明１８

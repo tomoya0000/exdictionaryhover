@@ -1,0 +1,5 @@
+sqlid	sql	説明
+SQLID0010	SELECT * FROM users WHERE user_id = ?	説明１０
+SQLID0011	INSERT INTO orders (user_id, product_id, quantity) VALUES (?, ?, ?)	説明１１
+SQLID0012	UPDATE products SET price = ? WHERE product_id = ?	説明１２
+SQLID0013	DELETE FROM sessions WHERE session_id = ?	説明１３

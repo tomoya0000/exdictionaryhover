@@ -1,71 +1,63 @@
-# exdictionaryhover README
+# ExDictionaryHover
 
-This is the README for your extension "exdictionaryhover". After writing up a brief description, we recommend including the following sections.
+ExDictionaryHoverは、外部ファイル（CSV/TSV形式）で定義したSQL辞書を参照し、エディタ上でSQL IDにカーソルを合わせると対応するSQL文や説明をホバー表示するVisual Studio Code拡張機能です。
 
-## Features
+## 主な機能
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- 複数のCSV/TSVファイルからSQL ID・SQL文・説明を読み込み、IDとSQL文・説明をマッピング
+- 任意の言語ファイルでSQL IDにマウスカーソルを合わせると、対応するSQL文と説明をポップアップ表示
+- 辞書ファイルのパスや列番号は設定で柔軟に指定可能
 
-For example if there is an image subfolder under your extension project workspace:
+## 使い方
 
-\!\[feature X\]\(images/feature-x.png\)
+1. `sql/sqlmap.tsv` など、SQL ID・SQL文・説明を含むCSVまたはTSVファイルを用意します。
+2. `settings.json` で `exDictionaryHover.csvFiles` にファイルパスや列番号を設定します（未設定の場合はデフォルトのテスト用ファイルが読み込まれます）。
+3. エディタ上でSQL IDにカーソルを合わせると、対応するSQL文・説明がホバー表示されます。
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+## 拡張機能設定
 
-## Requirements
+この拡張機能は以下の設定をサポートします（`settings.json`に記述）:
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+```json
+"exDictionaryHover.csvFiles": [
+  {
+    "filePath": "sql/sqlmap.tsv",
+    "idCol": 0,
+    "sqlCol": 1,
+    "descCol": 2
+  }
+]
+```
 
-## Extension Settings
+- `filePath`: CSV/TSVファイルのパス（拡張機能ディレクトリ基準、または絶対パス）
+- `idCol`: SQL IDの列番号（0始まり）
+- `sqlCol`: SQL文の列番号（0始まり）
+- `descCol`: 説明の列番号（0始まり、省略可）
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+## 必要条件
 
-For example:
+- Visual Studio Code v1.100.0 以上
 
-This extension contributes the following settings:
+## 既知の問題
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+- SQL IDが辞書に存在しない場合は何も表示されません。
+- CSV/TSVファイルの1行目はヘッダーとして扱われます。
 
-## Known Issues
+## リリースノート
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+### 0.0.1
 
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+- 初期リリース: SQL辞書ファイルのホバー表示に対応
 
 ---
 
-## Following extension guidelines
+## 開発・デバッグ
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+- F5キーで拡張機能をデバッグ実行できます。
+- `src/extension.ts` に主なロジックがあります。
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+---
 
-## Working with Markdown
+## ライセンス
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+MIT
