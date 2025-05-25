@@ -77,21 +77,21 @@ export function activate(context: vscode.ExtensionContext) {
     descCol?: number;
   }> = config.get("csvFiles") || [];
 
-  if (csvFiles.length === 0) {
-    // デフォルトのパスを設定※テスト用
-    csvFiles.push({
-      filePath: path.join(context.extensionPath, "sql", "sqlmap.tsv"),
-      idCol: 0,
-      sqlCol: 1,
-      descCol: 2, // 説明列はオプション
-    });
-    csvFiles.push({
-      filePath: path.join(context.extensionPath, "sql", "sqlmap2.tsv"),
-      idCol: 0,
-      sqlCol: 1,
-      descCol: 2, // 説明列はオプション
-    });
-  }
+  // if (csvFiles.length === 0) {
+  //   // デフォルトのパスを設定※テスト用
+  //   csvFiles.push({
+  //     filePath: path.join(context.extensionPath, "sql", "sqlmap.tsv"),
+  //     idCol: 0,
+  //     sqlCol: 1,
+  //     descCol: 2, // 説明列はオプション
+  //   });
+  //   csvFiles.push({
+  //     filePath: path.join(context.extensionPath, "sql", "sqlmap2.tsv"),
+  //     idCol: 0,
+  //     sqlCol: 1,
+  //     descCol: 2, // 説明列はオプション
+  //   });
+  // }
 
   csvFiles.forEach((file) => {
     // 相対パスは拡張機能ディレクトリ基準に変換
