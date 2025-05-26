@@ -24,7 +24,8 @@ ExDictionaryHoverは、外部ファイル（CSV/TSV形式）で定義したSQL�
     "filePath": "sql/sqlmap.tsv",
     "idCol": 0,
     "sqlCol": 1,
-    "descCol": 2
+    "descCol": 2,
+    "encode": "utf-8",
   }
 ]
 ```
@@ -33,6 +34,7 @@ ExDictionaryHoverは、外部ファイル（CSV/TSV形式）で定義したSQL�
 - `idCol`: SQL IDの列番号（0始まり）
 - `sqlCol`: SQL文の列番号（0始まり）
 - `descCol`: 説明の列番号（0始まり、省略可）
+- `encode`: ファイルのエンコード（省略可能、デフォルトutf-8）
 
 ## 必要条件
 

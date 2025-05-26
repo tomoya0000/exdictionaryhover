@@ -12,18 +12,21 @@ let sqlMap: Record<string, string> = {};
  * @param idCol - SQL IDの列番号（0始まり）
  * @param sqlCol - SQL文の列番号（0始まり）
  * @param descCol - 説明の列番号（0始まり、未使用なら-1）
+ * @param encode - ファイルのエンコード（デフォルトutf-8）
  */
 function loadSqlMapFromCsv(
   filePath: string,
   idCol: number,
   sqlCol: number,
   descCol: number = -1,
+  encode: BufferEncoding = "utf-8",
   hasHeader: boolean = true
 ) {
   let content: string;
   try {
-    content = fs.readFileSync(filePath, "utf-8");
+    content = fs.readFileSync(filePath, encode);
   } catch (error) {
+    console.error(`Failed to read file at ${filePath}:`, error);
     return; // File does not exist or cannot be read
   }
   const isTsv = path.extname(filePath).toLowerCase() === ".tsv";
@@ -36,17 +39,15 @@ function loadSqlMapFromCsv(
   // ヘッダー行をスキップするかどうかを確認
   const startIndex = hasHeader ? 1 : 0;
   for (let i = startIndex; i < records.length; i++) {
-    for (let i = 1; i < records.length; i++) {
-      const row = records[i];
-      const id = row[idCol];
-      const sql = row[sqlCol];
-      const desc = descCol >= 0 ? row[descCol] : "";
-      if (id && sql) {
-        // 必要に応じて説明も格納したい場合は値をオブジェクトにする
-        sqlMap[id.trim()] = desc
-          ? `${sql.trim()}\n\nーーーーーーーーーーーーーーーーーーーー\n\n${desc.trim()}`
-          : sql.trim();
-      }
+    const row = records[i];
+    const id = row[idCol];
+    const sql = row[sqlCol];
+    const desc = descCol >= 0 ? row[descCol] : "";
+    if (id && sql) {
+      // 必要に応じて説明も格納したい場合は値をオブジェクトにする
+      sqlMap[id.trim()] = desc
+        ? `${sql.trim()}\n\nーーーーーーーーーーーーーーーーーーーー\n\n${desc.trim()}`
+        : sql.trim();
     }
   }
 }
@@ -64,10 +65,6 @@ function loadSqlMapFromCsv(
  * @param context - VS Codeから提供される拡張機能コンテキスト。拡張機能の環境情報やサブスクリプション管理に使用されます。
  */
 export function activate(context: vscode.ExtensionContext) {
-  console.log(
-    'Congratulations, your extension "exdictionaryhover" is now active!'
-  );
-
   // settings.jsonからファイル設定を取得
   const config = vscode.workspace.getConfiguration("exDictionaryHover");
   const csvFiles: Array<{
@@ -75,6 +72,7 @@ export function activate(context: vscode.ExtensionContext) {
     idCol: number;
     sqlCol: number;
     descCol?: number;
+    encode?: string;
   }> = config.get("csvFiles") || [];
 
   // if (csvFiles.length === 0) {
@@ -84,12 +82,14 @@ export function activate(context: vscode.ExtensionContext) {
   //     idCol: 0,
   //     sqlCol: 1,
   //     descCol: 2, // 説明列はオプション
+  //     encode: "utf-8",　// エンコードはオプション
   //   });
   //   csvFiles.push({
   //     filePath: path.join(context.extensionPath, "sql", "sqlmap2.tsv"),
   //     idCol: 0,
   //     sqlCol: 1,
   //     descCol: 2, // 説明列はオプション
+  //     encode: "utf-8", // エンコードはオプション
   //   });
   // }
 
@@ -102,7 +102,8 @@ export function activate(context: vscode.ExtensionContext) {
       absPath,
       file.idCol,
       file.sqlCol,
-      file.descCol !== undefined ? file.descCol : -1
+      file.descCol,
+      file.encode as BufferEncoding | undefined
     );
   });
 
@@ -122,9 +123,16 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   context.subscriptions.push(provider);
+
+  console.log(
+    `Extension "exdictionaryhover" is now active! Loaded ${
+      Object.keys(sqlMap).length
+    } SQL mappings from ${csvFiles.length} CSV file(s).`
+  );
 }
 
 // このメソッドは拡張機能が非アクティブ化されたときに呼び出されます
 export function deactivate() {
   // No cleanup is required when the extension is deactivated.
+  // If any resources (e.g., event listeners) are added in the future, they should be disposed of here.
 }

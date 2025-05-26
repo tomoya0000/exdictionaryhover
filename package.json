@@ -43,6 +43,10 @@
               "descCol": {
                 "type": "number",
                 "description": "説明列のインデックス（省略可能）"
+              },
+              "encode": {
+                "type": "string",
+                "description": "ファイルのエンコード（省略可能、デフォルトutf-8）"
               }
             },
             "required": [
