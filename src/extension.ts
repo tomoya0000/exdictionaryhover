@@ -30,35 +30,41 @@ function loadSqlMapFromCsv(
 ) {
   try {
     outputChannel.appendLine(
-      `[${EXTENSION_NAME}] ファイル読み込み開始: ${filePath}, エンコード: ${encode}`
+      `[${EXTENSION_NAME}] ファイル読み込み開始: ${filePath}`
     );
     
     const content = readFileWithEncoding(filePath, encode);
-    
-    outputChannel.appendLine(
-      `[${EXTENSION_NAME}] ファイル読み込み成功: ${filePath}, サイズ: ${content.length}バイト`
-    );
-
     const isTsv = path.extname(filePath).toLowerCase() === ".tsv";
+    
     const records = parse(content, {
       columns: false,
       skip_empty_lines: true,
       delimiter: isTsv ? "\t" : ",",
       trim: true,
       relax_column_count: true,
-      skip_records_with_error: true
+      skip_records_with_error: false,
+      quote: false,
+      escape: false
     });
 
     const startIndex = hasHeader ? 1 : 0;
+    let registeredCount = 0;
+    
     for (let i = startIndex; i < records.length; i++) {
-      processRecord(records[i], idCol, sqlCol, descCol);
+      const record = records[i];
+      if (processRecord(record, idCol, sqlCol, descCol)) {
+        registeredCount++;
+      }
     }
+    
+    outputChannel.appendLine(
+      `[${EXTENSION_NAME}] 読み込み完了: ${registeredCount}件を登録`
+    );
   } catch (error) {
-    console.error(`[${EXTENSION_NAME}] ファイル読み込みエラー: ${filePath}`, {
-      error: error instanceof Error ? error.message : error,
-      stack: error instanceof Error ? error.stack : undefined,
-      encode,
-    });
+    const errorMsg = `[${EXTENSION_NAME}] ファイル読み込みエラー: ${filePath}`;
+    outputChannel.appendLine(errorMsg);
+    outputChannel.appendLine(`詳細: ${error instanceof Error ? error.message : error}`);
+    console.error(errorMsg, error);
   }
 }
 
@@ -94,20 +100,24 @@ function readFileWithEncoding(filePath: string, encoding: string): string {
     outputChannel.appendLine(
       `[${EXTENSION_NAME}] 警告: エンコード '${encoding}' は未サポート。UTF-8として処理します。`
     );
-    return buffer.toString(ENCODING_UTF8);
+    return buffer.toString('utf8');
   }
 }
 
 /**
  * CSVレコードを解析してSQLマップに登録する
  */
-function processRecord(row: string[], idCol: number, sqlCol: number, descCol: number): void {
+function processRecord(row: string[], idCol: number, sqlCol: number, descCol: number): boolean {
+  if (!row || row.length <= Math.max(idCol, sqlCol)) {
+    return false;
+  }
+
   const id = row[idCol]?.trim();
   const sql = row[sqlCol]?.trim();
-  const desc = descCol >= 0 ? row[descCol]?.trim() || "" : "";
+  const desc = descCol >= 0 && descCol < row.length ? row[descCol]?.trim() || "" : "";
 
   if (!id || !sql) {
-    return;
+    return false;
   }
 
   try {
@@ -116,14 +126,10 @@ function processRecord(row: string[], idCol: number, sqlCol: number, descCol: nu
       : sql;
     
     sqlMap.set(id, value);
-    console.log(`[${EXTENSION_NAME}] SQLマップ登録成功: ID=${id}, 長さ=${sql.length}文字`);
+    return true;
   } catch (error) {
-    console.error(`[${EXTENSION_NAME}] SQLマップ登録エラー:`, {
-      error: error instanceof Error ? error.message : error,
-      id,
-      sqlLength: sql.length,
-      descLength: desc.length,
-    });
+    console.error(`[${EXTENSION_NAME}] SQLマップ登録エラー:`, error);
+    return false;
   }
 }
 
@@ -178,16 +184,6 @@ function loadCsvFiles(context: vscode.ExtensionContext, csvFiles: CsvFileConfig[
       ? file.filePath
       : path.join(context.extensionPath, file.filePath);
 
-    // 設定値とパスをログ出力
-    console.log(`[${EXTENSION_NAME}] 設定:`, {
-      absPath,
-      idCol: file.idCol,
-      sqlCol: file.sqlCol,
-      descCol: file.descCol,
-      encode: file.encode,
-    });
-
-    // ファイル存在チェック
     if (!fs.existsSync(absPath)) {
       const errorMsg = `[${EXTENSION_NAME}] ファイルが存在しません: ${absPath}`;
       outputChannel.appendLine(errorMsg);
@@ -227,10 +223,6 @@ export function activate(context: vscode.ExtensionContext) {
 
       // ホバー時のIDを正規化
       const originalSqlid = normalizeHoverId(document.getText(range));
-      
-      console.log(
-        `[${EXTENSION_NAME}] ホバーID: ${originalSqlid}, 元の文字列: ${document.getText(range)}`
-      );
 
       // SQL IDマッピングを検索
       const mapping = findSqlMapping(originalSqlid);
@@ -240,16 +232,14 @@ export function activate(context: vscode.ExtensionContext) {
         return new vscode.Hover(hoverContent, range);
       }
 
-      // マッピングが無い場合は警告ログ
-      console.warn(`[${EXTENSION_NAME}] マッピング無し: ${originalSqlid}`);
       return undefined;
     },
   });
 
   context.subscriptions.push(provider);
 
-  console.log(
-    `Extension "exdictionaryhover" is now active! Loaded ${sqlMap.size} SQL mappings from ${csvFiles.length} CSV file(s).`
+  outputChannel.appendLine(
+    `[${EXTENSION_NAME}] 拡張機能がアクティブになりました。${sqlMap.size}件のマッピングを読み込みました。`
   );
 }
 
