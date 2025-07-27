@@ -32,10 +32,10 @@ function loadSqlMapFromCsv(
     outputChannel.appendLine(
       `[${EXTENSION_NAME}] ファイル読み込み開始: ${filePath}`
     );
-    
+
     const content = readFileWithEncoding(filePath, encode);
     const isTsv = path.extname(filePath).toLowerCase() === ".tsv";
-    
+
     const records = parse(content, {
       columns: false,
       skip_empty_lines: true,
@@ -44,26 +44,28 @@ function loadSqlMapFromCsv(
       relax_column_count: true,
       skip_records_with_error: false,
       quote: false,
-      escape: false
+      escape: false,
     });
 
     const startIndex = hasHeader ? 1 : 0;
     let registeredCount = 0;
-    
+
     for (let i = startIndex; i < records.length; i++) {
       const record = records[i];
       if (processRecord(record, idCol, sqlCol, descCol)) {
         registeredCount++;
       }
     }
-    
+
     outputChannel.appendLine(
       `[${EXTENSION_NAME}] 読み込み完了: ${registeredCount}件を登録`
     );
   } catch (error) {
     const errorMsg = `[${EXTENSION_NAME}] ファイル読み込みエラー: ${filePath}`;
     outputChannel.appendLine(errorMsg);
-    outputChannel.appendLine(`詳細: ${error instanceof Error ? error.message : error}`);
+    outputChannel.appendLine(
+      `詳細: ${error instanceof Error ? error.message : error}`
+    );
     console.error(errorMsg, error);
   }
 }
@@ -76,13 +78,13 @@ const WORD_REGEX = /(\w+)/;
 
 // エンコーディング名を正規化する関数
 function normalizeEncoding(encoding: string): string {
-  const enc = encoding.toLowerCase().replace(/[-_]/g, '');
+  const enc = encoding.toLowerCase().replace(/[-_]/g, "");
   const encodingMap: Record<string, string> = {
-    'sjis': 'shift_jis',
-    'shiftjis': 'shift_jis',
-    'eucjp': 'euc-jp',
-    'euc': 'euc-jp',
-    'utf8': 'utf-8'
+    sjis: "shift_jis",
+    shiftjis: "shift_jis",
+    eucjp: "euc-jp",
+    euc: "euc-jp",
+    utf8: "utf-8",
   };
   return encodingMap[enc] || encoding;
 }
@@ -93,38 +95,44 @@ function normalizeEncoding(encoding: string): string {
 function readFileWithEncoding(filePath: string, encoding: string): string {
   const buffer = fs.readFileSync(filePath);
   const normalizedEncoding = normalizeEncoding(encoding);
-  
+
   if (iconv.encodingExists(normalizedEncoding)) {
     return iconv.decode(buffer, normalizedEncoding);
   } else {
     outputChannel.appendLine(
       `[${EXTENSION_NAME}] 警告: エンコード '${encoding}' は未サポート。UTF-8として処理します。`
     );
-    return buffer.toString('utf8');
+    return buffer.toString("utf8");
   }
 }
 
 /**
  * CSVレコードを解析してSQLマップに登録する
  */
-function processRecord(row: string[], idCol: number, sqlCol: number, descCol: number): boolean {
+function processRecord(
+  row: string[],
+  idCol: number,
+  sqlCol: number,
+  descCol: number
+): boolean {
   if (!row || row.length <= Math.max(idCol, sqlCol)) {
     return false;
   }
 
   const id = row[idCol]?.trim();
   const sql = row[sqlCol]?.trim();
-  const desc = descCol >= 0 && descCol < row.length ? row[descCol]?.trim() || "" : "";
+  const desc =
+    descCol >= 0 && descCol < row.length ? row[descCol]?.trim() || "" : "";
 
   if (!id || !sql) {
     return false;
   }
 
   try {
-    const value = desc 
+    const value = desc
       ? `${sql}\n\nーーーーーーーーーーーーーーーーーーーー\n\n${desc}`
       : sql;
-    
+
     sqlMap.set(id, value);
     return true;
   } catch (error) {
@@ -136,7 +144,9 @@ function processRecord(row: string[], idCol: number, sqlCol: number, descCol: nu
 /**
  * SQL IDに対してマッピングされたSQL文を検索する
  */
-function findSqlMapping(originalSqlid: string): { sql: string; usedSqlid: string } | null {
+function findSqlMapping(
+  originalSqlid: string
+): { sql: string; usedSqlid: string } | null {
   // 最初に完全一致で検索
   let sql = sqlMap.get(originalSqlid);
   let usedSqlid = originalSqlid;
@@ -145,7 +155,7 @@ function findSqlMapping(originalSqlid: string): { sql: string; usedSqlid: string
   if (!sql && originalSqlid.length > 1) {
     const truncatedSqlid = originalSqlid.slice(0, -1);
     sql = sqlMap.get(truncatedSqlid);
-    
+
     if (sql) {
       usedSqlid = truncatedSqlid;
       console.log(
@@ -169,8 +179,12 @@ function normalizeHoverId(text: string): string {
 /**
  * ホバー表示用のコンテンツを生成する
  */
-function createHoverContent(sql: string, usedSqlid: string, originalSqlid: string): string {
-  return usedSqlid !== originalSqlid 
+function createHoverContent(
+  sql: string,
+  usedSqlid: string,
+  originalSqlid: string
+): string {
+  return usedSqlid !== originalSqlid
     ? `**SQL ID: ${usedSqlid}** (元: ${originalSqlid})\n\n${sql}`
     : sql;
 }
@@ -178,7 +192,10 @@ function createHoverContent(sql: string, usedSqlid: string, originalSqlid: strin
 /**
  * CSV設定ファイルを検証し、存在確認とロードを行う
  */
-function loadCsvFiles(context: vscode.ExtensionContext, csvFiles: CsvFileConfig[]): void {
+function loadCsvFiles(
+  context: vscode.ExtensionContext,
+  csvFiles: CsvFileConfig[]
+): void {
   csvFiles.forEach((file) => {
     const absPath = path.isAbsolute(file.filePath)
       ? file.filePath
@@ -226,9 +243,13 @@ export function activate(context: vscode.ExtensionContext) {
 
       // SQL IDマッピングを検索
       const mapping = findSqlMapping(originalSqlid);
-      
+
       if (mapping) {
-        const hoverContent = createHoverContent(mapping.sql, mapping.usedSqlid, originalSqlid);
+        const hoverContent = createHoverContent(
+          mapping.sql,
+          mapping.usedSqlid,
+          originalSqlid
+        );
         return new vscode.Hover(hoverContent, range);
       }
 
