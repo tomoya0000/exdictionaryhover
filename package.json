@@ -41,8 +41,18 @@
                 "description": "SQL列のインデックス"
               },
               "descCol": {
-                "type": "number",
-                "description": "説明列のインデックス（省略可能）"
+                "description": "説明列のインデックス。単一の数値または数値の配列を指定可能",
+                "oneOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                ]
               },
               "encode": {
                 "type": "string",

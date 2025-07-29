@@ -13,7 +13,7 @@ interface CsvFileConfig {
   filePath: string;
   idCol: number;
   sqlCol: number;
-  descCol?: number;
+  descCol?: number | number[];
   encode?: string;
 }
 
@@ -24,7 +24,7 @@ function loadSqlMapFromCsv(
   filePath: string,
   idCol: number,
   sqlCol: number,
-  descCol: number = -1,
+  descCol: number | number[] = -1,
   encode: string = "utf-8",
   hasHeader: boolean = true
 ) {
@@ -113,7 +113,7 @@ function processRecord(
   row: string[],
   idCol: number,
   sqlCol: number,
-  descCol: number
+  descCol: number | number[]
 ): boolean {
   if (!row || row.length <= Math.max(idCol, sqlCol)) {
     return false;
@@ -121,8 +121,20 @@ function processRecord(
 
   const id = row[idCol]?.trim();
   const sql = row[sqlCol]?.trim();
-  const desc =
-    descCol >= 0 && descCol < row.length ? row[descCol]?.trim() || "" : "";
+  
+  // 複数の説明列を処理
+  let desc = "";
+  if (Array.isArray(descCol)) {
+    // 配列の場合、各列の内容を区切り線で結合
+    const descriptions = descCol
+      .filter(col => col >= 0 && col < row.length)
+      .map(col => row[col]?.trim() || "")
+      .filter(text => text.length > 0);
+    desc = descriptions.join("\n\n");
+  } else if (descCol >= 0 && descCol < row.length) {
+    // 単一列の場合
+    desc = row[descCol]?.trim() || "";
+  }
 
   if (!id || !sql) {
     return false;
